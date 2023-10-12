@@ -1,0 +1,112 @@
+package it.mds.sdk.libreriaregole.regole.catalogo.crosscampo;
+
+import it.mds.sdk.anagrafiche.client.exceptions.MalformedRegistryException;
+import it.mds.sdk.anagrafiche.client.exceptions.RegistryNotFoundException;
+import it.mds.sdk.connettore.anagrafiche.gestore.anagrafica.GestoreAnagrafica;
+import it.mds.sdk.connettore.anagrafiche.tabella.RecordAnagrafica;
+import it.mds.sdk.connettore.anagrafiche.tabella.TabellaAnagrafica;
+import it.mds.sdk.gestoreesiti.modelli.Esito;
+import it.mds.sdk.libreriaregole.dtos.RecordDtoGenerico;
+import it.mds.sdk.libreriaregole.exception.ValidazioneImpossibileException;
+import it.mds.sdk.libreriaregole.regole.beans.Parametri;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
+import java.lang.reflect.InvocationTargetException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
+
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class RegolaDominioValoreAnagraficaListaValoriAmmessiTest {
+
+    @Mock
+    RecordDtoGenerico recordMockito;
+    @Mock
+    GestoreAnagrafica gestoreAnagrafica;
+    TabellaAnagrafica tabellaAnagrafica = Mockito.mock(TabellaAnagrafica.class);
+    RegolaDominioValoreAnagraficaListaValoriAmmessi regola;
+    Parametri parametriTest;
+
+
+    @Test
+    void costruttoreVuoto() {
+        RegolaDominioValoreAnagraficaListaValoriAmmessi regola = new RegolaDominioValoreAnagraficaListaValoriAmmessi();
+        assertTrue(regola instanceof RegolaDominioValoreAnagraficaListaValoriAmmessi);
+    }
+
+
+    @BeforeEach
+    void init() {
+        MockitoAnnotations.openMocks(this);
+        Map<String, String> parametri = new HashMap<>();
+        parametri.put("campoCondizionante", "paramcode");
+        parametri.put("listaValoriAmmessi", "G076A|G050A");
+        parametriTest = new Parametri();
+        parametriTest.setParametriMap(parametri);
+
+        regola = spy(new RegolaDominioValoreAnagraficaListaValoriAmmessi("RegolaDominioValoreAnagraficaListaValoriAmmessi", "AAA", "AAA", parametriTest));
+    }
+
+    @Test
+    void testOK() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, MalformedRegistryException, RegistryNotFoundException {
+
+        List<RecordAnagrafica> recordAnagraficas = new ArrayList<>();
+        recordAnagraficas.add(new RecordAnagrafica(LocalDate.of(1901, 1, 1).atStartOfDay(), LocalDate.of(2100, 1, 1).atStartOfDay(), "A03QE"));
+        recordAnagraficas.add(new RecordAnagrafica(LocalDate.of(1901, 1, 1).atStartOfDay(), LocalDate.of(2100, 1, 1).atStartOfDay(), "A03QF"));
+
+        Mockito.when(recordMockito.getCampo("campoDaValidare")).thenReturn("G050A");
+        Mockito.when(recordMockito.getCampo("paramcode")).thenReturn("A03QF-AAA");
+        Mockito.when(regola.getGestoreAnagrafica()).thenReturn(gestoreAnagrafica);
+        doReturn(tabellaAnagrafica).when(gestoreAnagrafica).richiediAnagrafica(any(), any(), anyBoolean());
+        Mockito.when(tabellaAnagrafica.getRecordsAnagrafica()).thenReturn(recordAnagraficas);
+
+        List<Esito> result = regola.valida("campoDaValidare", recordMockito);
+        for (Esito e : result) {
+            assertTrue(e.isValoreEsito());
+        }
+    }
+
+    @Test
+    void testKO() throws InvocationTargetException, IllegalAccessException, NoSuchMethodException, MalformedRegistryException, RegistryNotFoundException {
+
+        List<RecordAnagrafica> recordAnagraficas = new ArrayList<>();
+        recordAnagraficas.add(new RecordAnagrafica(LocalDate.of(1901, 1, 1).atStartOfDay(), LocalDate.of(2100, 1, 1).atStartOfDay(), "A03QE"));
+        recordAnagraficas.add(new RecordAnagrafica(LocalDate.of(1901, 1, 1).atStartOfDay(), LocalDate.of(2100, 1, 1).atStartOfDay(), "A03QF"));
+
+        Mockito.when(recordMockito.getCampo("campoDaValidare")).thenReturn("ABC");
+        Mockito.when(recordMockito.getCampo("paramcode")).thenReturn("A03QF");
+        Mockito.when(regola.getGestoreAnagrafica()).thenReturn(gestoreAnagrafica);
+        doReturn(tabellaAnagrafica).when(gestoreAnagrafica).richiediAnagrafica(any(), any(), anyBoolean());
+        Mockito.when(tabellaAnagrafica.getRecordsAnagrafica()).thenReturn(recordAnagraficas);
+
+        List<Esito> result = regola.valida("campoDaValidare", recordMockito);
+        for (Esito e : result) {
+            assertFalse(e.isValoreEsito());
+            assertEquals("AAA", e.getErroriValidazione().get(0).getCodice());
+        }
+    }
+
+    @Test
+    void validaKOException() throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+        Mockito.when(recordMockito.getCampo("campoDaValidare")).thenThrow(new IllegalAccessException());
+        assertThrows(ValidazioneImpossibileException.class, () -> regola.valida("campoDaValidare", recordMockito));
+
+    }
+}
