@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 package it.mds.sdk.libreriaregole.validator;
 
 import it.mds.sdk.gestoreesiti.GestoreEsiti;
@@ -486,17 +488,34 @@ public class ValidationEngine {
             boolean codRegioneCheck = false;
 
             while ((linea = br.readLine()) != null) {
-                if (!linea.equals(xmlTag)) {
+                if (linea.equals(xmlTag)) {
+
+                } else if (linea.contains("<AnnoRiferimento>")) {
+                    if (!annoRiferimentoCheck) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        annoRiferimentoCheck = true;
+                    }
+                } else if (linea.contains("<PeriodoRiferimento>")) {
+                    if (!periodoRiferimentoCheck) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        periodoRiferimentoCheck = true;
+                    }
+                } else if (linea.contains("<CodiceRegione>")) {
+                    if (!codRegioneCheck) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        codRegioneCheck = true;
+                    }
+                } else {
                     bw.write(linea);
                     bw.newLine();
                     bw.flush();
-                } else if (linea.contains("<AnnoRiferimento>")) {
-                    annoRiferimentoCheck = checkCodiceRegionale(bw, linea, annoRiferimentoCheck);
-                } else if (linea.contains("<PeriodoRiferimento>")) {
-                    periodoRiferimentoCheck = checkCodiceRegionale(bw, linea, periodoRiferimentoCheck);
-                } else if (linea.contains("<CodiceRegione>")) {
-                    codRegioneCheck = checkCodiceRegionale(bw, linea, codRegioneCheck);
-                } 
+                }
             }
             br.close();
             fr.close();
@@ -509,15 +528,7 @@ public class ValidationEngine {
         }
     }
 
-	private boolean checkCodiceRegionale(BufferedWriter bw, String linea, boolean codRegioneCheck) throws IOException {
-		if (!codRegioneCheck) {
-		    bw.write(linea);
-		    bw.newLine();
-		    bw.flush();
-		    codRegioneCheck = true;
-		}
-		return codRegioneCheck;
-	}
+
 
     public String puliziaFileAvn(String nomeFileTmp, String nomeFile, String tagFlussoXML) {
         try (FileReader fr = getFileReaderFromNomeFile(nomeFileTmp);
@@ -560,13 +571,21 @@ public class ValidationEngine {
 
 
             while ((linea = br.readLine()) != null) {
-                if (!linea.equals(xmlTag)) {
+                if (linea.equals(xmlTag)) {
+
+
+                } else if (linea.contains("<ns0:flsProSoc xmlns:ns0=\"http://flussi.mds.it/flsProSoc\">")) {
+                    if (!rootElement) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        rootElement = true;
+                    }
+                } else {
                     bw.write(linea);
                     bw.newLine();
                     bw.flush();
-                } else if (linea.contains("<ns0:flsProSoc xmlns:ns0=\"http://flussi.mds.it/flsProSoc\">")) {
-                    rootElement = checkCodiceRegionale(bw, linea, rootElement);
-                } 
+                }
             }
             br.close();
             fr.close();
@@ -594,14 +613,21 @@ public class ValidationEngine {
 
 
             while ((linea = br.readLine()) != null) {
-                if (!linea.equals(xmlTag)) {
+                if (linea.equals(xmlTag)) {
+
+
+                } else if (linea.contains("<flsDispovig>")) {
+                    if (!rootElement) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        rootElement = true;
+                    }
+                } else {
                     bw.write(linea);
                     bw.newLine();
                     bw.flush();
-
-                } else if (linea.contains("<flsDispovig>")) {
-                    rootElement = checkCodiceRegionale(bw, linea, rootElement);
-                } 
+                }
             }
             br.close();
             fr.close();
@@ -775,9 +801,25 @@ public class ValidationEngine {
 
             while ((linea = br.readLine()) != null) {
                 if (linea.contains("<REGIONE")) {
-                    occurrencesRegione = checkCodiceRegionale(bw, linea, occurrencesRegione);
+                    if (!occurrencesRegione) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        occurrencesRegione = true;
+                    }
                 } else if (linea.contains("<PERIODO")) {
-                    occurrencesPeriodo = checkCodiceRegionale(bw, linea, occurrencesPeriodo);
+                    if (!occurrencesPeriodo) {
+                        bw.write(linea);
+                        bw.newLine();
+                        bw.flush();
+                        occurrencesPeriodo = true;
+                    }
+                } else if (linea.contains("</REGIONE")) {
+
+                } else if (linea.contains("</PERIODO")) {
+
+                } else if (linea.contains("</dataroot")) {
+
                 } else {
                     bw.write(linea);
                     bw.newLine();

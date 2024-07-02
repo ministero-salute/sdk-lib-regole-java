@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 package it.mds.sdk.libreriaregole.regole.diretta;
 
 import it.mds.sdk.gestoreesiti.modelli.Esito;
@@ -7,6 +9,8 @@ import it.mds.sdk.libreriaregole.regole.beans.Parametri;
 import it.mds.sdk.libreriaregole.regole.beans.RegolaGenerica;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.persistence.oxm.annotations.XmlDiscriminatorValue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -48,7 +52,7 @@ public class RegolaDataCorrentePosterioreAnnoMeseRif extends RegolaGenerica {
             int meseCorrenteIntero = meseCorrente.getValue();
             int annoCorrente = dataCorrente.getYear();
 
-            if (annoString == null || meseRiferimento == null) {
+            if (StringUtils.isBlank(annoString) || StringUtils.isBlank(meseRiferimento)) {
                 return Collections.singletonList(creaEsitoKO(nomeCampo, "999", "Non è possibile validare la regola data esecuzione posteriore a anno mese di  riferimento perchè anno o mese non presenti nel record"));
             }
 

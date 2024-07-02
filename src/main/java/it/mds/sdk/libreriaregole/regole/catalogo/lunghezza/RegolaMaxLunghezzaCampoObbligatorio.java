@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 package it.mds.sdk.libreriaregole.regole.catalogo.lunghezza;
 
 import it.mds.sdk.gestoreesiti.modelli.Esito;

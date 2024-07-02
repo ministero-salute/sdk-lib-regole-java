@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+
 package it.mds.sdk.libreriaregole.dtos;
 
 import it.mds.sdk.gestoreesiti.modelli.AbstractSecurityModel;
